@@ -87,7 +87,7 @@ const Home: React.FC = () => {
       <div className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-0 bg-transparent text-gray-100 space-y-6">
         {/* シミュレーターへの導線 */}
         <div className="text-center mt-10">
-          <p className="text-lg text-gray-300 mb-6">長期ビットコイン投資による資産形成を考える</p>
+          <p className="text-lg text-gray-300 mb-6">長期ビットコイン投資による資産形成</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
             <Link
               to="/simulators/withdrawal"
@@ -124,19 +124,7 @@ const Home: React.FC = () => {
           <h2 className={`${typography.subtitle} text-amber-400`}>ビットコイン価格トラッカー</h2>
         </div>
 
-        {/* 最終更新 & 為替レート */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="text-xs text-gray-400">
-            為替レート: {formatCurrency(exchangeRate, 'JPY', { maxDecimals: 2 }).replace('¥', '')}円/USD
-          </div>
-          <div className="text-xs text-gray-400">
-            {currentPrice && (
-              <span>
-                最終更新: {new Date(currentPrice.timestamp).toLocaleString('ja-JP', { timeStyle: 'short' })}
-              </span>
-            )}
-          </div>
-        </div>
+
 
         {/* 価格カード3枚 */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
@@ -223,6 +211,20 @@ const Home: React.FC = () => {
                 </div>
               ) : null}
             </DataContainer>
+          </div>
+        </div>
+
+        {/* 最終更新 & 為替レート */}
+        <div className="flex justify-between items-center mb-4">
+          <div className="text-xs text-gray-400">
+            為替レート: {formatCurrency(exchangeRate, 'JPY', { maxDecimals: 2 }).replace('¥', '')}円/USD
+          </div>
+          <div className="text-xs text-gray-400">
+            {currentPrice && (
+              <span>
+                最終更新: {new Date(currentPrice.timestamp).toLocaleString('ja-JP', { timeStyle: 'short' })}
+              </span>
+            )}
           </div>
         </div>
 

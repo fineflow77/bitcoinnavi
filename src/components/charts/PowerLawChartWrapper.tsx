@@ -23,17 +23,17 @@ const PowerLawChartWrapper: React.FC<PowerLawChartWrapperProps> = (props) => {
                 height={props.height}
                 powerLawPosition={props.powerLawPosition}
                 showRSquared={false}
-                chartTitle="Power Law Chart"
+
             />
             <LogLogPowerLawChart
                 rSquared={props.rSquared}
                 chartData={props.chartData}
                 exchangeRate={props.exchangeRate}
                 currentPrice={props.currentPrice}
-                height={400}
+                height={700}
                 powerLawPosition={props.powerLawPosition}
                 showRSquared={true}
-                chartTitle="Log-Log Power Law Chart"
+
             />
         </>
     );

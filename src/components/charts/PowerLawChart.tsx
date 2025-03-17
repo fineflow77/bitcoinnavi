@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea, Label, ReferenceLine, Legend } from 'recharts';
+import React, { useMemo, useEffect, useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea, Label, Legend } from 'recharts';
 import { formatCurrency } from '../../utils/formatters';
 import { HALVING_EVENTS } from '../../utils/constants';
 import { getDaysSinceGenesis } from '../../utils/dateUtils';
@@ -24,18 +24,17 @@ export interface PowerLawChartProps {
     xAxisScale?: 'linear' | 'log';
     yAxisScale?: 'linear' | 'log';
     showRSquared?: boolean;
-    chartTitle?: string;
-    // isZoomed を削除
 }
 
 interface TooltipContentProps {
     active?: boolean;
     payload?: any[];
     label?: number;
+    exchangeRate?: number;
 }
 
 const COLORS = {
-    price: '#FF9500',
+    price: '#F7931A',
     median: '#4CAF50',
     support: '#E57373',
     grid: '#5A5A6A',
@@ -51,31 +50,43 @@ const CHART_CONFIG = {
     PRICE_LINE_WIDTH: 1.5,
     MODEL_LINE_WIDTH: 2,
     REFERENCE_LINE_WIDTH: 2,
-    MARGIN: { top: 80, right: 50, left: 70, bottom: 30 },
+    MARGIN: { top: 20, right: 10, left: 20, bottom: 20 }, // 左側を20に削減
+    MARGIN_MOBILE: { top: 10, right: 5, left: 5, bottom: 10 }, // モバイルでさらに詰める
 };
 
-const TooltipContent: React.FC<TooltipContentProps> = ({ active, payload, label }) => {
-    if (!active || !payload || !payload.length || !label) return null;
+const TooltipContent: React.FC<TooltipContentProps> = ({ active, payload, label, exchangeRate }) => {
+    if (!active || !payload || !payload.length || !label || !exchangeRate) return null;
 
     const data = payload[0].payload as ChartDataPoint;
     const date = new Date(label).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
 
+    const formatPrice = (value: number) => {
+        const jpy = formatCurrency(value * exchangeRate, 'JPY').replace(/[\$,]/g, '').replace('JPY', '¥');
+        const usd = formatCurrency(value, 'USD');
+        return `${jpy} (${usd})`;
+    };
+
     return (
         <div
-            className="p-3 rounded-lg shadow-md"
-            style={{ backgroundColor: COLORS.tooltip.bg, border: `1px solid ${COLORS.tooltip.border}`, color: '#fff', fontSize: '12px', opacity: 0.9 }}
+            className="p-3 rounded-lg shadow-lg"
+            style={{
+                backgroundColor: COLORS.tooltip.bg,
+                border: `1px solid ${COLORS.tooltip.border}`,
+                color: '#fff',
+                fontSize: '14px',
+            }}
         >
-            <p className="font-semibold">{date}</p>
+            <p className="font-semibold mb-2">{date}</p>
             {!data.isFuture && data.price !== null && (
                 <p>
-                    実際価格: <span style={{ color: COLORS.price }}>{formatCurrency(data.price, 'USD')}</span>
+                    実際価格: <span style={{ color: COLORS.price }}>{formatPrice(data.price)}</span>
                 </p>
             )}
             <p>
-                中央価格: <span style={{ color: COLORS.median }}>{formatCurrency(data.medianModel, 'USD')}</span>
+                中央価格: <span style={{ color: COLORS.median }}>{formatPrice(data.medianModel)}</span>
             </p>
             <p>
-                下限価格: <span style={{ color: COLORS.support }}>{formatCurrency(data.supportModel, 'USD')}</span>
+                下限価格: <span style={{ color: COLORS.support }}>{formatPrice(data.supportModel)}</span>
             </p>
         </div>
     );
@@ -103,8 +114,18 @@ const PowerLawChart: React.FC<PowerLawChartProps> = ({
     xAxisScale = 'linear',
     yAxisScale = 'log',
     showRSquared = true,
-    chartTitle = 'Bitcoin Price Chart',
 }) => {
+    const [isMobile, setIsMobile] = useState<boolean>(false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            setIsMobile(window.innerWidth <= 640);
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const dataWithDays = useMemo(() => chartData.map(point => ({
         ...point,
         daysSinceGenesis: getDaysSinceGenesis(new Date(point.date)),
@@ -121,23 +142,6 @@ const PowerLawChart: React.FC<PowerLawChartProps> = ({
         return { domain: [minDays, maxDays], yearTicks: generateYearTicks(minDays, maxDays), yDomainMax: yMax };
     }, [dataWithDays, yAxisScale]);
 
-    const currentPriceDate = useMemo(() => {
-        if (!chartData || chartData.length === 0) return null;
-        const now = Date.now();
-        let closest = null;
-        let closestDiff = Infinity;
-        for (const point of chartData) {
-            if (point.price !== null) {
-                const diff = Math.abs(point.date - now);
-                if (diff < closestDiff) {
-                    closestDiff = diff;
-                    closest = point;
-                }
-            }
-        }
-        return closest ? closest.date : null;
-    }, [chartData]);
-
     if (!chartData || chartData.length === 0) {
         return <div className="text-gray-400 text-center p-2 bg-gray-800 bg-opacity-50 rounded-lg">データがありません</div>;
     }
@@ -149,9 +153,8 @@ const PowerLawChart: React.FC<PowerLawChartProps> = ({
 
     return (
         <div className="bg-transparent overflow-hidden relative rounded-lg">
-            {chartTitle && <h2 className="text-center text-lg font-medium text-amber-400 mb-4">{chartTitle}</h2>}
             <ResponsiveContainer width="100%" height={height}>
-                <LineChart data={dataWithDays} margin={CHART_CONFIG.MARGIN}>
+                <LineChart data={dataWithDays} margin={isMobile ? CHART_CONFIG.MARGIN_MOBILE : CHART_CONFIG.MARGIN}>
                     <ReferenceArea
                         x1={domain[0]}
                         x2={domain[1]}
@@ -166,10 +169,10 @@ const PowerLawChart: React.FC<PowerLawChartProps> = ({
                     <Legend
                         verticalAlign="bottom"
                         align="right"
-                        wrapperStyle={{ color: COLORS.legendText, fontSize: '12px', padding: '5px 10px', borderRadius: '4px', backgroundColor: 'transparent', bottom: 20, right: 20, position: 'absolute' as const }}
+                        wrapperStyle={{ color: COLORS.legendText, fontSize: isMobile ? '10px' : '12px', padding: '5px 10px', borderRadius: '4px', backgroundColor: 'transparent', bottom: 10, right: 10, position: 'absolute' as const }}
                         formatter={(value) => {
                             const color = value === 'price' ? COLORS.price : value === 'medianModel' ? COLORS.median : value === 'supportModel' ? COLORS.support : COLORS.legendText;
-                            return <span style={{ color, marginRight: '15px', fontWeight: 500 }}>{value === 'price' ? '実際価格' : value === 'medianModel' ? '中央価格 (予測)' : '下限価格 (予測)'}</span>;
+                            return <span style={{ color, marginRight: '10px', fontWeight: 500 }}>{value === 'price' ? '実際価格' : value === 'medianModel' ? '中央価格 (予測)' : '下限価格 (予測)'}</span>;
                         }}
                         layout="horizontal"
                     />
@@ -186,7 +189,7 @@ const PowerLawChart: React.FC<PowerLawChartProps> = ({
                                     yAxisId="left"
                                     strokeWidth={0}
                                 >
-                                    <Label value={event.label} position="insideTop" fill="#fff" fontSize={11} fontWeight="normal" offset={10} opacity={0.8} />
+                                    <Label value={event.label} position="insideTop" fill="#fff" fontSize={isMobile ? 8 : 10} fontWeight="normal" offset={5} opacity={0.8} />
                                 </ReferenceArea>
                             );
                         }
@@ -198,13 +201,13 @@ const PowerLawChart: React.FC<PowerLawChartProps> = ({
                         tickLine={false}
                         axisLine={true}
                         tickFormatter={(days) => new Date(new Date('2009-01-03').getTime() + days * 86400000).getFullYear().toString()}
-                        tick={{ fontSize: 12, fill: COLORS.legendText, fontWeight: 'bold' }}
+                        tick={{ fontSize: isMobile ? 8 : 10, fill: COLORS.legendText, fontWeight: 'bold' }}
                         ticks={yearTicks}
                         domain={domain}
                         allowDataOverflow={true}
                         type="number"
                         scale={xAxisScale}
-                        minTickGap={15}
+                        minTickGap={10} // 間隔を詰める
                     />
                     <YAxis
                         yAxisId="left"
@@ -213,23 +216,22 @@ const PowerLawChart: React.FC<PowerLawChartProps> = ({
                         axisLine={true}
                         scale={yAxisScale}
                         domain={[yAxisScale === 'log' ? 0.1 : 0, yDomainMax]}
-                        tickFormatter={(value) => formatCurrency(value * exchangeRate, 'JPY').replace(/[\$,]/g, '').replace('JPY', '¥')}
-                        tick={{ fontSize: 11, fill: COLORS.legendText }}
-                        width={70}
-                        label={{ value: '価格 (円)', angle: -90, position: 'insideLeft', style: { fill: '#fff', fontSize: 12, fontWeight: 500 }, dx: -10 }}
+                        tickFormatter={(value) => formatCurrency(value * exchangeRate, 'JPY').replace(/[\$,]/g, '').replace('JPY', '¥').slice(0, -3)} // 簡略化
+                        tick={{ fontSize: isMobile ? 8 : 10, fill: COLORS.legendText }}
+                        width={isMobile ? 30 : 40} // 左側スペースをさらに削減
+                        label={{
+                            value: '価格 (円)',
+                            angle: -90,
+                            position: 'insideLeft',
+                            style: { fill: '#fff', fontSize: isMobile ? 8 : 10, fontWeight: 500 },
+                            dx: isMobile ? -2 : -5,
+                        }}
                     />
-                    <Tooltip content={<TooltipContent />} wrapperStyle={{ outline: 'none', fontSize: '12px' }} isAnimationActive={true} />
-                    {currentPriceDate && (
-                        <ReferenceLine
-                            x={currentPriceDate}
-                            stroke="#ffffff"
-                            strokeDasharray="3 3"
-                            strokeWidth={CHART_CONFIG.REFERENCE_LINE_WIDTH}
-                            yAxisId="left"
-                        >
-                            <Label value="現在" position="top" fill="#ffffff" fontSize={12} fontWeight="bold" offset={15} style={{ transition: 'all 0.3s ease' }} />
-                        </ReferenceLine>
-                    )}
+                    <Tooltip
+                        content={<TooltipContent exchangeRate={exchangeRate} />}
+                        wrapperStyle={{ outline: 'none', fontSize: '12px' }}
+                        isAnimationActive={true}
+                    />
                     <ReferenceArea
                         y1={0}
                         y2={dataWithDays.reduce((min, p) => p.supportModel < min ? p.supportModel : min, Infinity)}
@@ -295,4 +297,3 @@ const PowerLawChart: React.FC<PowerLawChartProps> = ({
 };
 
 export default PowerLawChart;
-
