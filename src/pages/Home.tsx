@@ -22,15 +22,15 @@ const colors: Record<string, string> = {
   primary: 'bg-green-500 hover:bg-green-600 text-white',
   secondary: 'bg-blue-500 hover:bg-blue-600 text-white',
   accent: 'bg-amber-500 hover:bg-amber-600 text-white',
-  cardBg: 'bg-gray-800',
-  cardBorder: 'border border-gray-700',
-  cardBorderHighlight: 'border border-amber-500',
+  cardBg: 'bg-gray-800/50',
+  cardBorder: 'border border-gray-700/30',
+  cardBorderHighlight: 'border border-blue-500/50',
   textPrimary: 'text-gray-100',
   textSecondary: 'text-gray-300',
   textMuted: 'text-gray-400',
-  chartBg: 'bg-transparent',
-  investmentCardBg: 'bg-gradient-to-br from-blue-600 to-blue-500',
-  withdrawalCardBg: 'bg-gradient-to-br from-green-600 to-green-500',
+  chartBg: 'bg-gray-800/50',
+  investmentCardBg: 'bg-gradient-to-br from-blue-600 to-indigo-500',
+  withdrawalCardBg: 'bg-gradient-to-br from-green-600 to-teal-500',
   buttonBg: 'bg-gray-700',
   buttonHover: 'hover:bg-gray-600',
 };
@@ -41,7 +41,9 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     if (weeklyPrices && weeklyPrices.length > 0) {
-      const calculatedRSquared = calculateRSquared(weeklyPrices.map(item => [new Date(item.date).getTime(), item.price]));
+      const calculatedRSquared = calculateRSquared(
+        weeklyPrices.map(item => [new Date(item.date).getTime(), item.price] as [number, number])
+      );
       if (calculatedRSquared !== null) setRSquared(calculatedRSquared);
     }
   }, [weeklyPrices]);
@@ -82,196 +84,194 @@ const Home: React.FC = () => {
 
   const daysCount = useMemo(() => getDaysSinceGenesis(new Date()), []);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center text-gray-400">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-blue-500 mx-auto mb-4"></div>
+          <p className={typography.small}>読み込み中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900 text-red-400">
+        <p className={typography.small}>エラー: {error.message}</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-0 bg-transparent text-gray-100 space-y-6">
-        {/* シミュレーターへの導線 */}
-        <div className="text-center mt-10">
-          <p className="text-lg text-gray-300 mb-6">長期ビットコイン投資による資産形成</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+    <div className="flex flex-col min-h-screen bg-gray-900 text-gray-100">
+      <div className="flex-grow max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+        {/* ヘッダーとシミュレーターへの導線 */}
+        <section className="text-center">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600 mb-6">
+            パワーローによるビットコイン投資
+          </h1>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <Link
               to="/simulators/withdrawal"
-              className={`${colors.withdrawalCardBg} p-4 rounded-2xl shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col items-start justify-between h-auto`}
+              className={`${colors.withdrawalCardBg} p-6 rounded-xl shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between`}
             >
               <div>
-                <PhosphorWallet size={32} weight="fill" className="text-white mb-0" />
-                <h2 className={`${typography.h2} text-white mb-1`}>取り崩しシミュレーター</h2>
-                <p className="text-gray-100 text-sm">保有するビットコインから定期的に引き出す場合の資産推移をシミュレーション</p>
+                <PhosphorWallet size={28} weight="fill" className="text-white mb-2" />
+                <h2 className={`${typography.h2} text-white`}>取り崩しシミュレーター</h2>
+                <p className={`${typography.small} text-gray-200`}>保有するビットコインから定期的に引き出す場合の資産推移をシミュレーション</p>
               </div>
-              <span className={`${colors.buttonBg} ${colors.buttonHover} px-4 py-2 rounded-full text-white text-sm font-medium mt-4 self-start flex items-center`}>
+              <span className={`${colors.buttonBg} ${colors.buttonHover} px-4 py-2 rounded-full text-sm mt-4 self-start flex items-center`}>
                 シミュレーターを利用する <ArrowUpRight className="ml-1" size={16} />
               </span>
             </Link>
             <Link
               to="/simulators/investment"
-              className={`${colors.investmentCardBg} p-4 rounded-2xl shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col items-start justify-between h-auto`}
+              className={`${colors.investmentCardBg} p-6 rounded-xl shadow-lg transition-all duration-300 hover:-translate-y-1 flex flex-col justify-between`}
             >
               <div>
-                <ChartLineUp size={32} weight="fill" className="text-white mb-0" />
-                <h2 className={`${typography.h2} text-white mb-1`}>積み立てシミュレーター</h2>
-                <p className="text-gray-100 text-sm">毎月の積立投資でビットコインを購入した場合の資産推移をシミュレーション</p>
+                <ChartLineUp size={28} weight="fill" className="text-white mb-2" />
+                <h2 className={`${typography.h2} text-white`}>積み立てシミュレーター</h2>
+                <p className={`${typography.small} text-gray-200`}>毎月の積立投資でビットコインを購入した場合の資産推移をシミュレーション</p>
               </div>
-              <span className={`${colors.buttonBg} ${colors.buttonHover} px-4 py-2 rounded-full text-white text-sm font-medium mt-4 self-start flex items-center`}>
+              <span className={`${colors.buttonBg} ${colors.buttonHover} px-4 py-2 rounded-full text-sm mt-4 self-start flex items-center`}>
                 シミュレーターを利用する <ArrowUpRight className="ml-1" size={16} />
               </span>
             </Link>
           </div>
-        </div>
+        </section>
 
-        {/* トラッカー部分のサブタイトル */}
-        <div className="flex items-center justify-center mt-10 mb-4">
-          <TrendingUp className="h-6 w-6 mr-2 text-amber-400" />
-          <h2 className={`${typography.subtitle} text-amber-400`}>ビットコイン価格トラッカー</h2>
-        </div>
-
-
-
-        {/* 価格カード3枚 */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          <div
-            className={`${colors.cardBg} p-5 rounded-xl shadow-md ${colors.cardBorderHighlight} transform transition-transform hover:-translate-y-1 duration-300`}
-          >
-            <h3 className={`${typography.h3} text-amber-400 mb-1 flex items-center`}>
-              <span className="w-3 h-3 rounded-full bg-amber-500 mr-2 animate-pulse" /> 現在価格
-            </h3>
-            <DataContainer
-              isLoading={loading}
-              error={error}
-              loadingMessage="価格データ取得中..."
-              noDataMessage="価格データが利用できません"
-            >
-              {currentPrice && currentPrice.prices.usd ? (
-                <div className="space-y-2">
-                  <div className="text-2xl font-bold text-amber-400">
-                    {formatCurrency(currentPrice.prices.jpy, 'JPY')}
-                  </div>
-                  <div className="text-sm text-gray-300">
-                    ({formatCurrency(currentPrice.prices.usd, 'USD')})
-                  </div>
-                  {priceChangePercentage !== null && (
-                    <div className={`text-sm font-medium ${priceChangePercentage >= 0 ? 'text-green-400' : 'text-red-400'} flex items-center`}>
-                      <span aria-label={priceChangePercentage >= 0 ? '上昇' : '下降'} className={`mr-1 ${priceChangePercentage >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {priceChangePercentage >= 0 ? '↑' : '↓'}
-                      </span>
-                      前日比: {priceChangePercentage >= 0 ? '+' : ''}{priceChangePercentage.toFixed(2)}%
-                    </div>
-                  )}
-                  {powerLawPosition !== null && (
-                    <div className="text-sm font-medium flex items-center" style={{ color: getPowerLawPositionColor(powerLawPosition) }} aria-label={`パワーロー位置: ${formatPercentage(powerLawPosition)}`}>
-                      パワーロー位置: {formatPercentage(powerLawPosition)}
-                      <span className="ml-1 text-xs">({getPowerLawPositionLabel(powerLawPosition)})</span>
-                    </div>
-                  )}
-                </div>
-              ) : null}
-            </DataContainer>
+        {/* 価格トラッカー */}
+        <section className="space-y-6">
+          <div className="flex items-center justify-center">
+            <TrendingUp className="h-5 w-5 mr-2 text-blue-400" />
+            <h2 className={`${typography.subtitle} text-blue-400`}>ビットコイン価格トラッカー</h2>
           </div>
-          <div className={`${colors.cardBg} p-5 rounded-xl shadow-md ${colors.cardBorder} transition-all duration-300 hover:shadow-xl`}>
-            <h3 className={`${typography.h3} text-green-400 mb-3 flex items-center`}>
-              <span className="w-3 h-3 rounded-full bg-green-500 mr-2" /> 本日のパワーロー中央価格
-            </h3>
-            <DataContainer
-              isLoading={loading}
-              error={error}
-              loadingMessage="価格データ取得中..."
-              noDataMessage="中央価格データが利用できません"
-            >
-              {powerLawData && powerLawData.length > 0 ? (
-                <div className="space-y-2">
-                  <div className="text-lg font-medium text-green-400">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div className={`${colors.cardBg} p-5 rounded-xl shadow-md ${colors.cardBorderHighlight}`}>
+              <h3 className={`${typography.h3} text-blue-400 mb-2 flex items-center`}>
+                <span className="w-2 h-2 rounded-full bg-blue-500 mr-2" /> 現在価格
+              </h3>
+              <DataContainer
+                isLoading={loading}
+                error={error}
+                loadingMessage="価格データ取得中..."
+                noDataMessage="価格データが利用できません"
+              >
+                {currentPrice && (
+                  <div className="space-y-1">
+                    <p className="text-xl font-bold text-blue-400">
+                      {formatCurrency(currentPrice.prices.jpy, 'JPY')}
+                    </p>
+                    <p className={`${typography.small} ${colors.textSecondary}`}>
+                      ({formatCurrency(currentPrice.prices.usd, 'USD')})
+                    </p>
+                    {priceChangePercentage !== null && (
+                      <p
+                        className={`${typography.small} font-medium ${priceChangePercentage >= 0 ? 'text-green-400' : 'text-red-400'
+                          }`}
+                      >
+                        {priceChangePercentage >= 0 ? '↑' : '↓'} {Math.abs(priceChangePercentage).toFixed(2)}%
+                      </p>
+                    )}
+                    {powerLawPosition !== null && (
+                      <p
+                        className={`${typography.small} font-medium`}
+                        style={{ color: getPowerLawPositionColor(powerLawPosition) }}
+                      >
+                        パワーロー位置: {formatPercentage(powerLawPosition)} ({getPowerLawPositionLabel(powerLawPosition)})
+                      </p>
+                    )}
+                  </div>
+                )}
+              </DataContainer>
+            </div>
+            <div className={`${colors.cardBg} p-5 rounded-xl shadow-md ${colors.cardBorder}`}>
+              <h3 className={`${typography.h3} text-green-400 mb-2 flex items-center`}>
+                <span className="w-2 h-2 rounded-full bg-green-500 mr-2" /> 本日のパワーロー中央価格
+              </h3>
+              <DataContainer
+                isLoading={loading}
+                error={error}
+                loadingMessage="価格データ取得中..."
+                noDataMessage="中央価格データが利用できません"
+              >
+                <div className="space-y-1">
+                  <p className="text-xl font-bold text-green-400">
                     {formatCurrency(medianPrice * exchangeRate, 'JPY')}
-                  </div>
-                  <div className="text-xs text-gray-300">
+                  </p>
+                  <p className={`${typography.small} ${colors.textSecondary}`}>
                     ({formatCurrency(medianPrice, 'USD')})
-                  </div>
-                  <div className="text-xs text-gray-400">累計日数: {daysCount.toLocaleString()} 日</div>
+                  </p>
+                  <p className={`${typography.small} ${colors.textMuted}`}>
+                    累計日数: {daysCount.toLocaleString()}
+                  </p>
                 </div>
-              ) : null}
-            </DataContainer>
-          </div>
-          <div className={`${colors.cardBg} p-5 rounded-xl shadow-md ${colors.cardBorder} transition-all duration-300 hover:shadow-xl`}>
-            <h3 className={`${typography.h3} text-red-400 mb-3 flex items-center`}>
-              <span className="w-3 h-3 rounded-full bg-red-500 mr-2" /> 本日のパワーロー下限価格
-            </h3>
-            <DataContainer
-              isLoading={loading}
-              error={error}
-              loadingMessage="価格データ取得中..."
-              noDataMessage="下限価格データが利用できません"
-            >
-              {powerLawData && powerLawData.length > 0 ? (
-                <div className="space-y-2">
-                  <div className="text-lg font-medium text-red-400">
+              </DataContainer>
+            </div>
+            <div className={`${colors.cardBg} p-5 rounded-xl shadow-md ${colors.cardBorder}`}>
+              <h3 className={`${typography.h3} text-red-400 mb-2 flex items-center`}>
+                <span className="w-2 h-2 rounded-full bg-red-500 mr-2" /> 本日のパワーロー下限価格
+              </h3>
+              <DataContainer
+                isLoading={loading}
+                error={error}
+                loadingMessage="価格データ取得中..."
+                noDataMessage="下限価格データが利用できません"
+              >
+                <div className="space-y-1">
+                  <p className="text-xl font-bold text-red-400">
                     {formatCurrency(supportPrice * exchangeRate, 'JPY')}
-                  </div>
-                  <div className="text-xs text-gray-300">
+                  </p>
+                  <p className={`${typography.small} ${colors.textSecondary}`}>
                     ({formatCurrency(supportPrice, 'USD')})
-                  </div>
-                  <div className="text-xs text-gray-400">　</div>
+                  </p>
                 </div>
-              ) : null}
-            </DataContainer>
+              </DataContainer>
+            </div>
           </div>
-        </div>
-
-        {/* 最終更新 & 為替レート */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="text-xs text-gray-400">
-            為替レート: {formatCurrency(exchangeRate, 'JPY', { maxDecimals: 2 }).replace('¥', '')}円/USD
+          <div className="flex justify-between text-xs text-gray-400">
+            <p>為替レート: {formatCurrency(exchangeRate, 'JPY', { maxDecimals: 2 }).replace('¥', '')} JPY/USD</p>
+            <p>最終更新: {currentPrice?.timestamp ? new Date(currentPrice.timestamp).toLocaleString('ja-JP', { timeStyle: 'short' }) : 'N/A'}</p>
           </div>
-          <div className="text-xs text-gray-400">
-            {currentPrice && (
-              <span>
-                最終更新: {new Date(currentPrice.timestamp).toLocaleString('ja-JP', { timeStyle: 'short' })}
-              </span>
-            )}
-          </div>
-        </div>
+        </section>
 
-        <div className="py-6"></div> {/* スペーサー */}
+        {/* チャート */}
+        <section>
+          <DataContainer
+            isLoading={loading}
+            error={error}
+            loadingMessage="チャートデータ取得中..."
+            noDataMessage="チャートデータが利用できません"
+          >
+            {powerLawData && powerLawData.length > 0 ? (
+              <PowerLawChartWrapper
+                rSquared={rSquared}
+                chartData={powerLawData}
+                exchangeRate={exchangeRate}
+                currentPrice={currentPrice?.prices.usd ?? 0}
+                height={600}
+              />
+            ) : null}
+          </DataContainer>
+        </section>
 
-        {/* チャート部分 */}
-        <div className="mb-8 mt-2">
-          <h2 className="text-center text-lg font-medium text-amber-400 mb-4">ビットコイン長期価格予測（パワーローモデル）</h2>
-          <div className={`rounded-xl ${colors.cardBorder} overflow-hidden`}>
-            <DataContainer
-              isLoading={loading}
-              error={error}
-              loadingMessage="チャートデータ取得中..."
-              noDataMessage="チャートデータが利用できません"
-            >
-              {powerLawData && powerLawData.length > 0 ? (
-                <PowerLawChartWrapper
-                  rSquared={rSquared}
-                  chartData={powerLawData}
-                  exchangeRate={exchangeRate}
-                  currentPrice={currentPrice?.prices.usd ?? 0}
-                  height={800}
-
-                  powerLawPosition={powerLawPosition}
-                />
-              ) : null}
-            </DataContainer>
-          </div>
-        </div>
-
-        {/* パワーロー解説セクション */}
-        <div className={`${colors.cardBg} p-5 rounded-xl shadow-md ${colors.cardBorder}`}>
-          <h2 className={`${typography.h3} text-amber-400 mb-3 flex items-center`}>
-            <Info className="h-4 w-4 mr-2 text-amber-400" />
-            パワーローとは
+        {/* パワーロー解説 */}
+        <section className={`${colors.cardBg} p-6 rounded-xl shadow-md ${colors.cardBorder}`}>
+          <h2 className={`${typography.h2} text-blue-400 mb-4 flex items-center`}>
+            <Info className="h-5 w-5 mr-2" /> パワーローとは
           </h2>
-          <p className={`${typography.body} ${colors.textSecondary} mb-3`}>
-            ビットコインは、株式等と異なり、パワーローと呼ばれる自然法則に従い、定期的にバブルを発生させながら成長していくことがわかっています。ビットコイン価格のボラリティリティが大きいのは事実ですが、対数変換すると右肩上がりでの成長が読み取れます。
+          <p className={`${typography.body} ${colors.textSecondary} mb-4`}>
+            ビットコインは株式などとは異なり、パワーローと呼ばれる自然法則に従って成長することが分かってきました。定期的なバブルで価格が急騰する一方、時間の経過とともにパワーローの予測ラインに収束する傾向があります。対数スケールで見ると、右肩上がりの成長がはっきりと確認できます。
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2 p-3 bg-gray-800 bg-opacity-50 rounded-lg">
+            <div className="p-4 bg-gray-700/30 rounded-lg">
               <h3 className={`${typography.subtitle} text-green-400`}>中央価格</h3>
               <p className={`${typography.small} ${colors.textSecondary}`}>
                 パワーローモデルが予測する妥当な価格。チャート左上の「決定係数（R²）」は、1に近いほど精度が高い。
               </p>
             </div>
-            <div className="space-y-2 p-3 bg-gray-800 bg-opacity-50 rounded-lg">
+            <div className="p-4 bg-gray-700/30 rounded-lg">
               <h3 className={`${typography.subtitle} text-red-400`}>下限価格</h3>
               <p className={`${typography.small} ${colors.textSecondary}`}>
                 暴落時含め、歴史的にほとんど割れることのない強力なサポートライン。買い場の目安となる。
@@ -279,17 +279,11 @@ const Home: React.FC = () => {
             </div>
           </div>
           <div className="mt-4 text-right">
-            <Link
-              to="/power-law-explanation"
-              className="text-amber-400 hover:text-amber-300 text-sm font-medium inline-flex items-center group"
-            >
-              詳しく学ぶ{' '}
-              <span className="ml-1 transition-transform duration-200 group-hover:translate-x-1">
-                →
-              </span>
+            <Link to="/power-law-explanation" className="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center justify-end">
+              詳しく学ぶ <ArrowUpRight className="ml-1" size={16} />
             </Link>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );

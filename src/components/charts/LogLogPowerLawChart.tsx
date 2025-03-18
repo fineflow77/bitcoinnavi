@@ -1,4 +1,3 @@
-// src/components/charts/LogLogPowerLawChart.tsx
 import React from 'react';
 import PowerLawChart, { PowerLawChartProps } from './PowerLawChart';
 
@@ -18,4 +17,3 @@ const LogLogPowerLawChart: React.FC<LogLogPowerLawChartProps> = (props) => {
 };
 
 export default LogLogPowerLawChart;
-

@@ -78,14 +78,23 @@ export const getPowerLawPositionLabel = (position: number | null, supportDeviati
  */
 export const getPowerLawPositionColor = (position: number | null, supportDeviation: number | null = null): string => {
     if (position === null || position === undefined) return '#888888';
-    if (supportDeviation !== null && supportDeviation < 10) return '#D81B60';
 
-    if (position < -50) return '#1565C0';
-    if (position < -30) return '#2196F3';
-    if (position < -10) return '#4CAF50';
-    if (position <= 10) return '#8BC34A';
-    if (position <= 30) return '#FF9800';
-    if (position <= 70) return '#F44336';
-    return '#B71C1C';
+    // 極端な状況を優先
+    if (position < -50) return '#1565C0'; // 買い増しチャンス（青）
+    if (position > 70) return '#B71C1C';  // ピーク警戒（濃赤）
+
+    // 下限接近の条件は中間範囲でのみ適用
+    if (supportDeviation !== null && supportDeviation < 10 && position >= -50 && position <= 70) {
+        return '#D81B60'; // 下限接近（赤紫）
+    }
+
+    // その他の範囲
+    if (position < -30) return '#2196F3'; // 割安（明るい青）
+    if (position < -10) return '#4CAF50'; // やや割安（緑）
+    if (position <= 10) return '#8BC34A'; // 適正範囲（薄緑）
+    if (position <= 30) return '#FF9800'; // 上昇（注意）（オレンジ）
+    if (position <= 70) return '#F44336'; // 高値警戒（赤）
+
+    return '#FFFFFF'; // デフォルト（白）
 };
 
