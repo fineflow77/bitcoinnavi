@@ -6,7 +6,7 @@ import { DEFAULTS, CURRENT_YEAR, PriceModel } from '../../utils/constants';
 import { useWithdrawalSimulation, WithdrawalInputs } from '../../hooks/useWithdrawalSimulation';
 import LoadingSpinner from '../ui/LoadingSpinner';
 
-// Home.tsx から借用したスタイル（変更なし）
+// Home.tsx から借用したスタイル（拡張）
 const typography = {
     h1: 'text-3xl sm:text-4xl font-extrabold tracking-tight',
     h2: 'text-xl sm:text-2xl font-semibold tracking-tight',
@@ -16,27 +16,28 @@ const typography = {
 };
 
 const colors = {
-    primary: 'bg-green-500 hover:bg-green-600 text-white',
-    secondary: 'bg-blue-500 hover:bg-blue-600 text-white',
-    accent: 'bg-amber-500 hover:bg-amber-600 text-white',
-    cardBg: 'bg-gray-800',
-    cardBorder: 'border border-gray-700',
+    primary: 'bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white',
+    secondary: 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white',
+    accent: 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white',
+    cardBg: 'bg-gradient-to-br from-gray-800 to-gray-900',
+    cardBorder: 'border border-gray-700/50',
     textPrimary: 'text-gray-100',
     textSecondary: 'text-gray-300',
     textMuted: 'text-gray-400',
+    chartBg: 'bg-gradient-to-br from-gray-800/80 to-gray-900/80',
+    inputBg: 'bg-gray-800/70 hover:bg-gray-700/70 focus:bg-gray-700/70',
+    shadowGlow: 'shadow-lg hover:shadow-xl hover:shadow-amber-500/20',
 };
 
-// ツールチップアイコンコンポーネント（変更なし）
 const TooltipIcon: React.FC<{ content: React.ReactNode }> = ({ content }) => (
     <div className="group relative inline-block ml-2">
-        <HelpCircle className="h-4 w-4 text-gray-400 hover:text-gray-300 cursor-help transition-colors duration-200" />
-        <div className="invisible group-hover:visible absolute z-10 w-64 p-2 mt-2 text-sm text-gray-300 bg-gray-800 rounded-lg shadow-lg -translate-x-1/2 left-1/2">
+        <HelpCircle className="h-4 w-4 text-gray-400 hover:text-amber-300 cursor-help transition-colors duration-200" />
+        <div className="invisible group-hover:visible absolute z-10 w-64 p-3 mt-2 text-sm text-gray-200 bg-gray-900/95 rounded-lg shadow-lg border border-gray-700/50 -translate-x-1/2 left-1/2">
             {content}
         </div>
     </div>
 );
 
-// インプットフィールドコンポーネント（変更なし）
 const InputField: React.FC<{
     label: string;
     tooltip?: React.ReactNode;
@@ -49,7 +50,7 @@ const InputField: React.FC<{
             {tooltip && <TooltipIcon content={tooltip} />}
         </div>
         {children}
-        {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+        {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
     </div>
 );
 
@@ -70,22 +71,22 @@ const TOOLTIPS = {
 };
 
 const WithdrawalSimulator: React.FC = () => {
-    const [initialBTC, setInitialBTC] = useState("");
-    const [startYear, setStartYear] = useState("2025");
+    const [initialBTC, setInitialBTC] = useState<string>("");
+    const [startYear, setStartYear] = useState<string>("2025");
     const [priceModel, setPriceModel] = useState<PriceModel>(PriceModel.STANDARD);
     const [withdrawalType, setWithdrawalType] = useState<'fixed' | 'percentage'>("fixed");
-    const [withdrawalAmount, setWithdrawalAmount] = useState("");
-    const [withdrawalRate, setWithdrawalRate] = useState("4");
-    const [showSecondPhase, setShowSecondPhase] = useState(false);
-    const [secondPhaseYear, setSecondPhaseYear] = useState("2030");
+    const [withdrawalAmount, setWithdrawalAmount] = useState<string>("");
+    const [withdrawalRate, setWithdrawalRate] = useState<string>("4");
+    const [showSecondPhase, setShowSecondPhase] = useState<boolean>(false);
+    const [secondPhaseYear, setSecondPhaseYear] = useState<string>("2030");
     const [secondPhaseType, setSecondPhaseType] = useState<'fixed' | 'percentage'>("fixed");
-    const [secondPhaseAmount, setSecondPhaseAmount] = useState("");
-    const [secondPhaseRate, setSecondPhaseRate] = useState("4");
-    const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
-    const [taxRate, setTaxRate] = useState(DEFAULTS.TAX_RATE.toString());
-    const [exchangeRate, setExchangeRate] = useState(DEFAULTS.EXCHANGE_RATE.toString());
-    const [inflationRate, setInflationRate] = useState(DEFAULTS.INFLATION_RATE.toString());
-    const [isCalculating, setIsCalculating] = useState(false);
+    const [secondPhaseAmount, setSecondPhaseAmount] = useState<string>("");
+    const [secondPhaseRate, setSecondPhaseRate] = useState<string>("4");
+    const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(false);
+    const [taxRate, setTaxRate] = useState<string>(DEFAULTS.TAX_RATE.toString());
+    const [exchangeRate, setExchangeRate] = useState<string>(DEFAULTS.EXCHANGE_RATE.toString());
+    const [inflationRate, setInflationRate] = useState<string>(DEFAULTS.INFLATION_RATE.toString());
+    const [isCalculating, setIsCalculating] = useState<boolean>(false);
 
     const { results, errors, simulate } = useWithdrawalSimulation();
 
@@ -105,7 +106,7 @@ const WithdrawalSimulator: React.FC = () => {
             secondPhaseRate,
             taxRate,
             exchangeRate,
-            inflationRate
+            inflationRate,
         };
         setTimeout(() => {
             simulate(inputs);
@@ -114,21 +115,18 @@ const WithdrawalSimulator: React.FC = () => {
     };
 
     const chartData = useMemo(() => {
-        if (results.length > 0) {
-            return results.map(result => ({
-                year: result.year,
-                btcHeld: result.remainingBTC,
-                totalValue: result.totalValue,
-            }));
-        }
-        return [];
+        return results.map(result => ({
+            year: result.year,
+            btcHeld: result.remainingBTC,
+            totalValue: result.totalValue,
+        }));
     }, [results]);
 
     return (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-900 min-h-screen text-gray-100 space-y-8">
-            <div className={`${colors.cardBg} p-6 rounded-xl shadow-md ${colors.cardBorder}`}>
-                <h1 className={`${typography.h1} ${colors.textPrimary} mb-6 flex items-center justify-center`}>
-                    <span className="bg-gradient-to-r from-blue-400 to-green-500 bg-clip-text text-transparent">ビットコイン取り崩しシミュレーター</span>
+            <div className={`${colors.cardBg} p-6 rounded-xl ${colors.cardBorder} ${colors.shadowGlow}`}>
+                <h1 className={`${typography.h1} ${colors.textPrimary} mb-6 text-center bg-clip-text bg-gradient-to-r from-blue-400 to-green-500 text-transparent`}>
+                    ビットコイン取り崩しシミュレーター
                 </h1>
 
                 <div className="space-y-6">
@@ -138,7 +136,7 @@ const WithdrawalSimulator: React.FC = () => {
                                 type="number"
                                 value={initialBTC}
                                 onChange={(e) => setInitialBTC(e.target.value)}
-                                className="w-full bg-gray-700 p-2 rounded-md text-gray-100 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all duration-200"
+                                className={`${colors.inputBg} w-full p-2 rounded-md ${colors.textPrimary} focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-all duration-300`}
                                 step="0.00000001"
                                 placeholder="例: 0.1"
                                 aria-label="保有BTC"
@@ -148,7 +146,7 @@ const WithdrawalSimulator: React.FC = () => {
                             <select
                                 value={startYear}
                                 onChange={(e) => setStartYear(e.target.value)}
-                                className="w-full bg-gray-700 p-2 rounded-md text-gray-100 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all duration-200"
+                                className={`${colors.inputBg} w-full p-2 rounded-md ${colors.textPrimary} focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-all duration-300`}
                                 aria-label="取り崩し開始年"
                             >
                                 {Array.from({ length: 26 }, (_, i) => CURRENT_YEAR + i).map((year) => (
@@ -162,8 +160,8 @@ const WithdrawalSimulator: React.FC = () => {
                         <InputField label="価格予測モデル" tooltip={TOOLTIPS.priceModel}>
                             <select
                                 value={priceModel}
-                                onChange={(e) => setPriceModel(e.target.value as PriceModel)} // PriceModelにキャスト
-                                className="w-full bg-gray-700 p-2 rounded-md text-gray-100 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all duration-200"
+                                onChange={(e) => setPriceModel(e.target.value as PriceModel)}
+                                className={`${colors.inputBg} w-full p-2 rounded-md ${colors.textPrimary} focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-all duration-300`}
                             >
                                 <option value={PriceModel.STANDARD}>標準モデル</option>
                                 <option value={PriceModel.CONSERVATIVE}>保守的モデル</option>
@@ -172,11 +170,11 @@ const WithdrawalSimulator: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <InputField label="取り崩し方法" error={errors.withdrawalRate}> {/* withdrawalType → withdrawalRate */}
+                        <InputField label="取り崩し方法" error={errors.withdrawalRate}>
                             <select
                                 value={withdrawalType}
                                 onChange={(e) => setWithdrawalType(e.target.value as 'fixed' | 'percentage')}
-                                className="w-full bg-gray-700 p-2 rounded-md text-gray-100 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all duration-200"
+                                className={`${colors.inputBg} w-full p-2 rounded-md ${colors.textPrimary} focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-all duration-300`}
                             >
                                 <option value="fixed">定額（月額）</option>
                                 <option value="percentage">定率（年率）</option>
@@ -192,7 +190,7 @@ const WithdrawalSimulator: React.FC = () => {
                                     type="number"
                                     value={withdrawalType === "fixed" ? withdrawalAmount : withdrawalRate}
                                     onChange={(e) => withdrawalType === "fixed" ? setWithdrawalAmount(e.target.value) : setWithdrawalRate(e.target.value)}
-                                    className="w-full bg-gray-700 p-2 rounded-md text-gray-100 pr-12 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all duration-200"
+                                    className={`${colors.inputBg} w-full p-2 rounded-md ${colors.textPrimary} pr-12 focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-all duration-300`}
                                     placeholder={withdrawalType === "fixed" ? "例: 200000" : "例: 4"}
                                     step={withdrawalType === "fixed" ? "1000" : "0.1"}
                                 />
@@ -215,12 +213,12 @@ const WithdrawalSimulator: React.FC = () => {
                             <TooltipIcon content={TOOLTIPS.secondPhase} />
                         </label>
                         {showSecondPhase && (
-                            <div className="pl-4 space-y-4 border-l-2 border-gray-700">
+                            <div className="pl-4 space-y-4 border-l-2 border-amber-500/30">
                                 <InputField label="2段階目開始年" error={errors.secondPhaseYear}>
                                     <select
                                         value={secondPhaseYear}
                                         onChange={(e) => setSecondPhaseYear(e.target.value)}
-                                        className="w-full bg-gray-700 p-2 rounded-md text-gray-100 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all duration-200"
+                                        className={`${colors.inputBg} w-full p-2 rounded-md ${colors.textPrimary} focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-all duration-300`}
                                     >
                                         {Array.from({ length: 26 }, (_, i) => CURRENT_YEAR + i).map((year) => (
                                             <option key={year} value={year}>{year}年</option>
@@ -228,11 +226,11 @@ const WithdrawalSimulator: React.FC = () => {
                                     </select>
                                 </InputField>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <InputField label="2段階目取り崩し方法" error={errors.secondPhaseRate}> {/* secondPhaseType → secondPhaseRate */}
+                                    <InputField label="2段階目取り崩し方法" error={errors.secondPhaseRate}>
                                         <select
                                             value={secondPhaseType}
                                             onChange={(e) => setSecondPhaseType(e.target.value as 'fixed' | 'percentage')}
-                                            className="w-full bg-gray-700 p-2 rounded-md text-gray-100 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all duration-200"
+                                            className={`${colors.inputBg} w-full p-2 rounded-md ${colors.textPrimary} focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-all duration-300`}
                                         >
                                             <option value="fixed">定額（月額）</option>
                                             <option value="percentage">定率（年率）</option>
@@ -247,7 +245,7 @@ const WithdrawalSimulator: React.FC = () => {
                                                 type="number"
                                                 value={secondPhaseType === "fixed" ? secondPhaseAmount : secondPhaseRate}
                                                 onChange={(e) => secondPhaseType === "fixed" ? setSecondPhaseAmount(e.target.value) : setSecondPhaseRate(e.target.value)}
-                                                className="w-full bg-gray-700 p-2 rounded-md text-gray-100 pr-12 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all duration-200"
+                                                className={`${colors.inputBg} w-full p-2 rounded-md ${colors.textPrimary} pr-12 focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-all duration-300`}
                                                 placeholder={secondPhaseType === "fixed" ? "例: 200000" : "例: 4"}
                                                 step={secondPhaseType === "fixed" ? "1000" : "0.1"}
                                             />
@@ -263,7 +261,7 @@ const WithdrawalSimulator: React.FC = () => {
 
                     <div className="mt-4">
                         <div
-                            className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-colors ${showAdvancedOptions ? 'bg-blue-700' : 'bg-gray-700 hover:bg-gray-600'}`}
+                            className={`flex items-center justify-between p-3 rounded-md cursor-pointer transition-colors ${showAdvancedOptions ? 'bg-blue-700/50' : 'bg-gray-700/50 hover:bg-gray-600/50'}`}
                             onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
                         >
                             <div className="flex items-center space-x-2">
@@ -273,14 +271,14 @@ const WithdrawalSimulator: React.FC = () => {
                             {showAdvancedOptions ? <ChevronUp size={18} className={colors.textPrimary} /> : <ChevronDown size={18} className={colors.textSecondary} />}
                         </div>
                         {showAdvancedOptions && (
-                            <div className="mt-4 space-y-4 p-4 bg-gray-700 rounded-md">
+                            <div className="mt-4 space-y-4 p-4 bg-gray-800/50 rounded-md border border-gray-700/30">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <InputField label="税率 (%)" tooltip={TOOLTIPS.taxRate} error={errors.taxRate}>
                                         <input
                                             type="number"
                                             value={taxRate}
                                             onChange={(e) => setTaxRate(e.target.value)}
-                                            className="w-full bg-gray-600 p-2 rounded-md text-gray-100 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all duration-200"
+                                            className={`${colors.inputBg} w-full p-2 rounded-md ${colors.textPrimary} focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-all duration-300`}
                                             step="0.1"
                                             placeholder="例: 20.315"
                                         />
@@ -290,7 +288,7 @@ const WithdrawalSimulator: React.FC = () => {
                                             type="number"
                                             value={exchangeRate}
                                             onChange={(e) => setExchangeRate(e.target.value)}
-                                            className="w-full bg-gray-600 p-2 rounded-md text-gray-100 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all duration-200"
+                                            className={`${colors.inputBg} w-full p-2 rounded-md ${colors.textPrimary} focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-all duration-300`}
                                             step="0.1"
                                             placeholder="例: 150"
                                         />
@@ -300,7 +298,7 @@ const WithdrawalSimulator: React.FC = () => {
                                             type="number"
                                             value={inflationRate}
                                             onChange={(e) => setInflationRate(e.target.value)}
-                                            className="w-full bg-gray-600 p-2 rounded-md text-gray-100 focus:ring-2 focus:ring-amber-500 focus:outline-none transition-all duration-200"
+                                            className={`${colors.inputBg} w-full p-2 rounded-md ${colors.textPrimary} focus:ring-2 focus:ring-amber-500/50 focus:outline-none transition-all duration-300`}
                                             step="0.1"
                                             placeholder="例: 0"
                                         />
@@ -314,7 +312,7 @@ const WithdrawalSimulator: React.FC = () => {
                         <button
                             onClick={runSimulation}
                             disabled={isCalculating}
-                            className={`${colors.accent} w-full p-3 rounded-lg text-lg font-semibold transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-opacity-50 shadow-md flex justify-center items-center ${isCalculating ? 'opacity-70 cursor-not-allowed' : ''}`}
+                            className={`${colors.accent} w-full p-3 rounded-lg text-lg font-semibold transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-400/50 ${isCalculating ? 'opacity-70 cursor-not-allowed' : ''} ${colors.shadowGlow}`}
                         >
                             {isCalculating ? (
                                 <>
@@ -329,18 +327,18 @@ const WithdrawalSimulator: React.FC = () => {
                 </div>
 
                 {errors.simulation && (
-                    <div className="mt-4 p-3 bg-red-900 text-gray-100 rounded-md">
+                    <div className="mt-4 p-3 bg-red-900/80 text-gray-100 rounded-md border border-red-700/50">
                         {errors.simulation}
                     </div>
                 )}
 
                 {results.length > 0 && (
                     <div className="mt-8 space-y-6">
-                        <div className={`${colors.cardBg} p-6 rounded-xl shadow-md ${colors.cardBorder}`}>
+                        <div className={`${colors.chartBg} p-6 rounded-xl ${colors.cardBorder} ${colors.shadowGlow}`}>
                             <h2 className={`${typography.h2} ${colors.textPrimary} mb-4`}>資産推移</h2>
                             <ResponsiveContainer width="100%" height={400}>
                                 <LineChart data={chartData}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#4A4A5A" />
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#5A5A6A" opacity={0.5} />
                                     <XAxis dataKey="year" stroke="#e2e8f0" tick={{ fontSize: 12, fill: '#e2e8f0' }} />
                                     <YAxis
                                         yAxisId="left"
@@ -352,7 +350,7 @@ const WithdrawalSimulator: React.FC = () => {
                                             value: 'BTC残高',
                                             angle: -90,
                                             position: 'insideLeft',
-                                            style: { fill: '#34D399', fontSize: 12, fontWeight: 500 }
+                                            style: { fill: '#34D399', fontSize: 12, fontWeight: 500 },
                                         }}
                                     />
                                     <YAxis
@@ -365,24 +363,17 @@ const WithdrawalSimulator: React.FC = () => {
                                             value: '資産評価額',
                                             angle: 90,
                                             position: 'insideRight',
-                                            style: { fill: '#60A5FA', fontSize: 12, fontWeight: 500 }
+                                            style: { fill: '#60A5FA', fontSize: 12, fontWeight: 500 },
                                         }}
                                     />
                                     <Tooltip
                                         contentStyle={{ backgroundColor: 'rgba(26, 32, 44, 0.95)', border: '1px solid rgba(82, 82, 91, 0.8)', borderRadius: '8px' }}
                                         labelStyle={{ color: '#e2e8f0' }}
-                                        formatter={(value, name) => {
-                                            if (typeof name === 'string') {
-                                                if (name === 'btcHeld') {
-                                                    return [formatBTC(value as number, 4), '残り保有BTC'];
-                                                } else if (name === 'totalValue') {
-                                                    return [formatYen(value as number, 2), '資産評価額'];
-                                                }
-                                            }
-                                            return [value, name];
-                                        }}
+                                        formatter={(value: number, name: string) =>
+                                            name === 'btcHeld' ? [formatBTC(value, 4), '残り保有BTC'] : [formatYen(value, 2), '資産評価額']
+                                        }
                                     />
-                                    <Legend wrapperStyle={{ color: '#e2e8f0' }} />
+                                    <Legend wrapperStyle={{ color: '#e2e8f0', paddingTop: '10px' }} />
                                     <Line
                                         yAxisId="left"
                                         type="monotone"
@@ -390,6 +381,7 @@ const WithdrawalSimulator: React.FC = () => {
                                         stroke="#34D399"
                                         name="残り保有BTC"
                                         dot={false}
+                                        strokeWidth={2}
                                     />
                                     <Line
                                         yAxisId="right"
@@ -398,63 +390,61 @@ const WithdrawalSimulator: React.FC = () => {
                                         stroke="#60A5FA"
                                         name="資産評価額"
                                         dot={false}
+                                        strokeWidth={2}
                                     />
                                 </LineChart>
                             </ResponsiveContainer>
                         </div>
 
-                        <div className={`block md:hidden ${colors.cardBg} p-4 rounded-xl shadow-md space-y-3`}>
+                        <div className={`block md:hidden ${colors.cardBg} p-4 rounded-xl ${colors.cardBorder} ${colors.shadowGlow}`}>
                             <h3 className={`${typography.h3} ${colors.textPrimary} mb-2`}>ハイライト</h3>
-                            <div className="bg-gray-700 p-3 rounded-md">
-                                <div className={`${typography.small} ${colors.textMuted}`}>BTC初期保有量</div>
-                                <div className={`${typography.body} ${colors.textPrimary}`}>{formatBTC(parseFloat(initialBTC) || 0, 4)}</div>
-                            </div>
-                            <div className="bg-gray-700 p-3 rounded-md">
-                                <div className={`${typography.small} ${colors.textMuted}`}>取り崩し開始年</div>
-                                <div className={`${typography.body} ${colors.textPrimary}`}>{startYear}年</div>
-                            </div>
-                            <div className="bg-gray-700 p-3 rounded-md">
-                                <div className={`${typography.small} ${colors.textMuted}`}>
-                                    {withdrawalType === "fixed" ? "月額取り崩し" : "年間取り崩し率"}
+                            <div className="space-y-3">
+                                <div className="bg-gray-800/50 p-3 rounded-md">
+                                    <div className={`${typography.small} ${colors.textMuted}`}>BTC初期保有量</div>
+                                    <div className={`${typography.body} ${colors.textPrimary}`}>{formatBTC(parseFloat(initialBTC) || 0, 4)}</div>
                                 </div>
-                                <div className={`${typography.body} ${colors.textPrimary}`}>
-                                    {withdrawalType === "fixed"
-                                        ? formatYen(parseFloat(withdrawalAmount) || 0, 2)
-                                        : formatPercentage(parseFloat(withdrawalRate) || 0, 2)}
+                                <div className="bg-gray-800/50 p-3 rounded-md">
+                                    <div className={`${typography.small} ${colors.textMuted}`}>取り崩し開始年</div>
+                                    <div className={`${typography.body} ${colors.textPrimary}`}>{startYear}年</div>
                                 </div>
-                            </div>
-                            {(() => {
-                                const zeroIndex = results.findIndex(r => r.remainingBTC <= 0);
-                                const zeroYear = zeroIndex !== -1 ? results[zeroIndex].year : null;
-                                return (
-                                    <div className="bg-gray-700 p-3 rounded-md">
-                                        <div className={`${typography.small} ${colors.textMuted}`}>資金寿命</div>
-                                        <div className={`${typography.body} ${colors.textPrimary}`}>
-                                            {zeroYear
-                                                ? `${zeroYear}年（${zeroYear - parseInt(startYear)}年間）`
-                                                : "2050年以降も維持"}
-                                        </div>
+                                <div className="bg-gray-800/50 p-3 rounded-md">
+                                    <div className={`${typography.small} ${colors.textMuted}`}>
+                                        {withdrawalType === "fixed" ? "月額取り崩し" : "年間取り崩し率"}
                                     </div>
-                                );
-                            })()}
-                            <div className="bg-gray-700 p-3 rounded-md">
-                                <div className={`${typography.small} ${colors.textMuted}`}>5年後の資産評価額</div>
-                                <div className={`${typography.body} ${colors.textPrimary}`}>
-                                    {formatYen(
-                                        results.find(r => r.year === CURRENT_YEAR + 5)?.totalValue || 0,
-                                        2
-                                    )}
+                                    <div className={`${typography.body} ${colors.textPrimary}`}>
+                                        {withdrawalType === "fixed"
+                                            ? formatYen(parseFloat(withdrawalAmount) || 0, 2)
+                                            : formatPercentage(parseFloat(withdrawalRate) || 0, 2)}
+                                    </div>
+                                </div>
+                                <div className="bg-gray-800/50 p-3 rounded-md">
+                                    <div className={`${typography.small} ${colors.textMuted}`}>資金寿命</div>
+                                    <div className={`${typography.body} ${colors.textPrimary}`}>
+                                        {(() => {
+                                            const zeroIndex = results.findIndex(r => r.remainingBTC <= 0);
+                                            const zeroYear = zeroIndex !== -1 ? results[zeroIndex].year : null;
+                                            return zeroYear
+                                                ? `${zeroYear}年（${zeroYear - parseInt(startYear)}年間）`
+                                                : "2050年以降も維持";
+                                        })()}
+                                    </div>
+                                </div>
+                                <div className="bg-gray-800/50 p-3 rounded-md">
+                                    <div className={`${typography.small} ${colors.textMuted}`}>5年後の資産評価額</div>
+                                    <div className={`${typography.body} ${colors.textPrimary}`}>
+                                        {formatYen(results.find(r => r.year === CURRENT_YEAR + 5)?.totalValue || 0, 2)}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className={`hidden md:block ${colors.cardBg} p-6 rounded-xl shadow-md ${colors.cardBorder}`}>
+                        <div className={`hidden md:block ${colors.cardBg} p-6 rounded-xl ${colors.cardBorder} ${colors.shadowGlow}`}>
                             <div className="flex justify-between mb-4">
                                 <h3 className={`${typography.h3} ${colors.textPrimary}`}>シミュレーション結果</h3>
                             </div>
                             <div className="overflow-x-auto -mx-6 px-6">
-                                <table className="min-w-full divide-y divide-gray-700">
-                                    <thead className="bg-gray-700">
+                                <table className="min-w-full divide-y divide-gray-700/50">
+                                    <thead className="bg-gray-800/50">
                                         <tr>
                                             <th scope="col" className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>年</th>
                                             <th scope="col" className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>BTC価格</th>
@@ -468,9 +458,9 @@ const WithdrawalSimulator: React.FC = () => {
                                             <th scope="col" className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>資産評価額</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-700">
-                                        {results.map((result) => (
-                                            <tr key={result.year} className={result.year % 2 === 0 ? "bg-gray-800" : "bg-gray-750 hover:bg-gray-700 transition-colors duration-200"}>
+                                    <tbody className="divide-y divide-gray-700/50">
+                                        {results.map((result, index) => (
+                                            <tr key={result.year} className={index % 2 === 0 ? "bg-gray-800/30" : "bg-gray-750/30 hover:bg-gray-700/50 transition-colors duration-200"}>
                                                 <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>{result.year}</td>
                                                 <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>{formatYen(result.btcPrice, 2)}</td>
                                                 {showSecondPhase && (
@@ -501,3 +491,4 @@ const WithdrawalSimulator: React.FC = () => {
 };
 
 export default WithdrawalSimulator;
+

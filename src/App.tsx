@@ -54,16 +54,19 @@ const App: React.FC = () => {
           />
         </Routes>
       </main>
-      <footer className="bg-gray-900 py-6">
-        <div className="bg-gray-900 rounded-md text-sm text-gray-400 text-center">
-          <p>※ 予測は理論モデルに基づく参考値です。投資は自己責任で。</p>
-          <p className="mt-2">
-            © 2025 BTCパワーロー博士{' '}
-            <a href="https://x.com/lovewaves711" target="_blank" rel="noopener noreferrer">
-              @lovewaves711
-            </a>
-          </p>
-        </div>
+      <footer className="text-center text-gray-400 mt-12 py-4 border-t border-gray-800">
+        <p>
+          © {new Date().getFullYear()} BTCパワーロー博士{' '}
+          <a
+            href="https://x.com/lovewaves711"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            @lovewaves711
+          </a>
+          . All rights reserved.
+        </p>
       </footer>
     </div>
   );

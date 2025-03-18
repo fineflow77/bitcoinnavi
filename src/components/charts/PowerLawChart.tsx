@@ -36,14 +36,14 @@ interface TooltipContentProps {
 const COLORS = {
     price: '#F7931A',
     median: '#4CAF50',
-    support: '#EF4444', // モダンなダークレッドに変更
+    support: '#EF4444',
     grid: '#5A5A6A',
     halving: 'rgba(255, 255, 255, 0.25)',
     tooltip: { bg: 'rgba(26, 32, 44, 0.95)', border: 'rgba(82, 82, 91, 0.8)' },
     plotAreaBg: '#000000',
     legendText: '#e2e8f0',
     priceArea: 'rgba(255, 149, 0, 0.1)',
-    supportArea: 'rgba(239, 68, 68, 0.1)', // サポートエリアも調整
+    supportArea: 'rgba(239, 68, 68, 0.1)',
     textPrimary: 'text-gray-100',
     textSecondary: 'text-gray-300',
     textMuted: 'text-gray-400',
@@ -169,7 +169,7 @@ const PowerLawChart: React.FC<PowerLawChartProps> = ({
     }
 
     return (
-        <div className="bg-gray-800/50 rounded-xl shadow-md border border-gray-700/30 overflow-hidden">
+        <div className="bg-gray-800/50 rounded-xl shadow-md border border-gray-700/30 overflow-hidden relative">
             <ResponsiveContainer width="100%" height={height}>
                 <LineChart data={dataWithDays} margin={isMobile ? CHART_CONFIG.MARGIN_MOBILE : CHART_CONFIG.MARGIN}>
                     <ReferenceArea
@@ -323,8 +323,8 @@ const PowerLawChart: React.FC<PowerLawChartProps> = ({
             </ResponsiveContainer>
             {showRSquared && rSquared !== null && (
                 <div
-                    className="absolute top-2 left-4 bg-gray-800/90 text-white rounded-lg p-2 shadow-lg border border-gray-700/50"
-                    style={{ zIndex: 10 }}
+                    className="absolute bottom-2 left-4 bg-gray-800/90 text-white rounded-lg p-2 shadow-lg border border-gray-700/50"
+                    style={{ zIndex: 1000 }}
                 >
                     <span className="font-medium">決定係数 (R²): </span>
                     <span className="font-bold text-blue-400">{rSquared.toFixed(4)}</span>
