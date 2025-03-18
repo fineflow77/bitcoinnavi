@@ -13,6 +13,8 @@ const typography = {
     h3: 'text-lg sm:text-xl font-medium',
     body: 'text-sm sm:text-base font-normal',
     small: 'text-xs sm:text-sm font-normal',
+    tableHeader: 'text-sm sm:text-base font-semibold', // テーブルヘッダー用に追加
+    tableBody: 'text-sm sm:text-base font-normal', // テーブルボディ用に追加
 };
 
 const colors = {
@@ -27,6 +29,7 @@ const colors = {
     chartBg: 'bg-gradient-to-br from-gray-800/80 to-gray-900/80',
     inputBg: 'bg-gray-800/70 hover:bg-gray-700/70 focus:bg-gray-700/70',
     shadowGlow: 'shadow-lg hover:shadow-xl hover:shadow-amber-500/20',
+    tableHeaderBg: 'bg-gradient-to-r from-gray-700 to-gray-800', // テーブルヘッダー用グラデーション
 };
 
 const TooltipIcon: React.FC<{ content: React.ReactNode }> = ({ content }) => (
@@ -337,7 +340,7 @@ const WithdrawalSimulator: React.FC = () => {
                         <div className={`${colors.chartBg} p-6 rounded-xl ${colors.cardBorder} ${colors.shadowGlow}`}>
                             <h2 className={`${typography.h2} ${colors.textPrimary} mb-4`}>資産推移</h2>
                             <ResponsiveContainer width="100%" height={400}>
-                                <LineChart data={chartData}>
+                                <LineChart data={chartData} margin={{ top: 20, right: 50, left: 50, bottom: 20 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#5A5A6A" opacity={0.5} />
                                     <XAxis dataKey="year" stroke="#e2e8f0" tick={{ fontSize: 12, fill: '#e2e8f0' }} />
                                     <YAxis
@@ -347,11 +350,13 @@ const WithdrawalSimulator: React.FC = () => {
                                         tick={{ fill: '#e2e8f0' }}
                                         domain={['auto', 'auto']}
                                         label={{
-                                            value: 'BTC残高',
+                                            value: '残り保有BTC',
                                             angle: -90,
                                             position: 'insideLeft',
+                                            offset: -40,
                                             style: { fill: '#34D399', fontSize: 12, fontWeight: 500 },
                                         }}
+                                        width={80}
                                     />
                                     <YAxis
                                         yAxisId="right"
@@ -363,8 +368,10 @@ const WithdrawalSimulator: React.FC = () => {
                                             value: '資産評価額',
                                             angle: 90,
                                             position: 'insideRight',
+                                            offset: -10,
                                             style: { fill: '#60A5FA', fontSize: 12, fontWeight: 500 },
                                         }}
+                                        width={100}
                                     />
                                     <Tooltip
                                         contentStyle={{ backgroundColor: 'rgba(26, 32, 44, 0.95)', border: '1px solid rgba(82, 82, 91, 0.8)', borderRadius: '8px' }}
@@ -444,39 +451,39 @@ const WithdrawalSimulator: React.FC = () => {
                             </div>
                             <div className="overflow-x-auto -mx-6 px-6">
                                 <table className="min-w-full divide-y divide-gray-700/50">
-                                    <thead className="bg-gray-800/50">
+                                    <thead className={colors.tableHeaderBg}>
                                         <tr>
-                                            <th scope="col" className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>年</th>
-                                            <th scope="col" className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>BTC価格</th>
+                                            <th scope="col" className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>年</th>
+                                            <th scope="col" className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>BTC価格</th>
                                             {showSecondPhase && (
-                                                <th scope="col" className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>段階</th>
+                                                <th scope="col" className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>段階</th>
                                             )}
-                                            <th scope="col" className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>取り崩し率</th>
-                                            <th scope="col" className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>取り崩し額</th>
-                                            <th scope="col" className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>取り崩しBTC</th>
-                                            <th scope="col" className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>残り保有BTC</th>
-                                            <th scope="col" className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>資産評価額</th>
+                                            <th scope="col" className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>取り崩し率</th>
+                                            <th scope="col" className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>取り崩し額</th>
+                                            <th scope="col" className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>取り崩しBTC</th>
+                                            <th scope="col" className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>残り保有BTC</th>
+                                            <th scope="col" className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>資産評価額</th>
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-gray-700/50">
                                         {results.map((result, index) => (
-                                            <tr key={result.year} className={index % 2 === 0 ? "bg-gray-800/30" : "bg-gray-750/30 hover:bg-gray-700/50 transition-colors duration-200"}>
-                                                <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>{result.year}</td>
-                                                <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>{formatYen(result.btcPrice, 2)}</td>
+                                            <tr key={result.year} className={index % 2 === 0 ? "bg-gray-800/30 hover:bg-gray-700/50" : "bg-gray-750/30 hover:bg-gray-700/50 transition-colors duration-200"}>
+                                                <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>{result.year}</td>
+                                                <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>{formatYen(result.btcPrice, 2)}</td>
                                                 {showSecondPhase && (
-                                                    <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>{result.phase}</td>
+                                                    <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>{result.phase}</td>
                                                 )}
-                                                <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>
+                                                <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>
                                                     {typeof result.withdrawalRate === 'number' ? formatPercentage(result.withdrawalRate, 2) : result.withdrawalRate}
                                                 </td>
-                                                <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>
+                                                <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>
                                                     {typeof result.withdrawalAmount === 'number' ? formatYen(result.withdrawalAmount, 2) : result.withdrawalAmount}
                                                 </td>
-                                                <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>
+                                                <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>
                                                     {typeof result.withdrawalBTC === 'number' ? formatBTC(result.withdrawalBTC, 4) : result.withdrawalBTC}
                                                 </td>
-                                                <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>{formatBTC(result.remainingBTC, 4)}</td>
-                                                <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>{formatYen(result.totalValue, 2)}</td>
+                                                <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>{formatBTC(result.remainingBTC, 4)}</td>
+                                                <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>{formatYen(result.totalValue, 2)}</td>
                                             </tr>
                                         ))}
                                     </tbody>

@@ -13,6 +13,8 @@ const typography = {
     h3: 'text-lg sm:text-xl font-medium',
     body: 'text-sm sm:text-base font-normal',
     small: 'text-xs sm:text-sm font-normal',
+    tableHeader: 'text-sm sm:text-base font-semibold', // テーブルヘッダー用に追加
+    tableBody: 'text-sm sm:text-base font-normal', // テーブルボディ用に追加
 };
 
 const colors = {
@@ -27,6 +29,7 @@ const colors = {
     chartBg: 'bg-gradient-to-br from-gray-800/80 to-gray-900/80',
     inputBg: 'bg-gray-800/70 hover:bg-gray-700/70 focus:bg-gray-700/70',
     shadowGlow: 'shadow-lg hover:shadow-xl hover:shadow-amber-500/20',
+    tableHeaderBg: 'bg-gradient-to-r from-gray-700 to-gray-800', // テーブルヘッダー用グラデーション
 };
 
 const TooltipIcon: React.FC<{ content: React.ReactNode }> = ({ content }) => (
@@ -269,149 +272,156 @@ const InvestmentSimulator: React.FC = () => {
                     </div>
                 </div>
 
-                {errors.simulation && (
-                    <div className="mt-4 p-3 bg-red-900/80 text-gray-100 rounded-md border border-red-700/50">
-                        {errors.simulation}
-                    </div>
-                )}
-
-                {results.length > 0 && (
-                    <div className="mt-8 space-y-6">
-                        <div className={`${colors.chartBg} p-6 rounded-xl ${colors.cardBorder} ${colors.shadowGlow}`}>
-                            <h2 className={`${typography.h2} ${colors.textPrimary} mb-4`}>資産推移</h2>
-                            <ResponsiveContainer width="100%" height={400}>
-                                <LineChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#5A5A6A" opacity={0.5} />
-                                    <XAxis dataKey="year" stroke="#e2e8f0" tick={{ fontSize: 12, fill: '#e2e8f0' }} />
-                                    <YAxis
-                                        yAxisId="left"
-                                        stroke="#34D399"
-                                        tickFormatter={(value) => formatBTC(value, 4)}
-                                        tick={{ fill: '#e2e8f0' }}
-                                        domain={['auto', 'auto']}
-                                        label={{
-                                            value: 'BTC保有量',
-                                            angle: -90,
-                                            position: 'insideLeft',
-                                            style: { fill: '#34D399', fontSize: 12, fontWeight: 500 },
-                                        }}
-                                    />
-                                    <YAxis
-                                        yAxisId="right"
-                                        orientation="right"
-                                        stroke="#60A5FA"
-                                        tickFormatter={(value) => formatYen(value, 2)}
-                                        tick={{ fill: '#e2e8f0' }}
-                                        domain={['auto', 'auto']}
-                                        label={{
-                                            value: '資産評価額',
-                                            angle: 90,
-                                            position: 'insideRight',
-                                            style: { fill: '#60A5FA', fontSize: 12, fontWeight: 500 },
-                                        }}
-                                        width={80}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{ backgroundColor: 'rgba(26, 32, 44, 0.95)', border: '1px solid rgba(82, 82, 91, 0.8)', borderRadius: '8px' }}
-                                        labelStyle={{ color: '#e2e8f0' }}
-                                        formatter={(value: number, name: string) =>
-                                            name === "btcHeld" ? [formatBTC(value, 4), "BTC保有量"] : [formatYen(value, 2), "資産評価額"]
-                                        }
-                                    />
-                                    <Legend wrapperStyle={{ color: '#e2e8f0', paddingTop: '10px' }} verticalAlign="top" height={36} />
-                                    <Line
-                                        yAxisId="left"
-                                        type="monotone"
-                                        dataKey="btcHeld"
-                                        name="BTC保有量"
-                                        stroke="#34D399"
-                                        dot={false}
-                                        strokeWidth={2}
-                                    />
-                                    <Line
-                                        yAxisId="right"
-                                        type="monotone"
-                                        dataKey="totalValue"
-                                        name="資産評価額"
-                                        stroke="#60A5FA"
-                                        dot={false}
-                                        strokeWidth={2}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
+                {
+                    errors.simulation && (
+                        <div className="mt-4 p-3 bg-red-900/80 text-gray-100 rounded-md border border-red-700/50">
+                            {errors.simulation}
                         </div>
+                    )
+                }
 
-                        <div className={`block md:hidden ${colors.cardBg} p-4 rounded-xl ${colors.cardBorder} ${colors.shadowGlow}`}>
-                            <h3 className={`${typography.h3} ${colors.textPrimary} mb-2`}>ハイライト</h3>
-                            <div className="space-y-3">
-                                <div className="bg-gray-800/50 p-3 rounded-md">
-                                    <div className={`${typography.small} ${colors.textMuted}`}>初期投資額</div>
-                                    <div className={`${typography.body} ${colors.textPrimary}`}>
-                                        {initialInvestmentType === "jpy"
-                                            ? formatYen(parseFloat(initialInvestment) || 0, 2)
-                                            : formatBTC(parseFloat(initialBtcHolding) || 0, 4)}
+                {
+                    results.length > 0 && (
+                        <div className="mt-8 space-y-6">
+                            <div className={`${colors.chartBg} p-6 rounded-xl ${colors.cardBorder} ${colors.shadowGlow}`}>
+                                <h2 className={`${typography.h2} ${colors.textPrimary} mb-4`}>資産推移</h2>
+                                <ResponsiveContainer width="100%" height={400}>
+                                    <LineChart data={chartData} margin={{ top: 20, right: 50, left: 50, bottom: 20 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#5A5A6A" opacity={0.5} />
+                                        <XAxis dataKey="year" stroke="#e2e8f0" tick={{ fontSize: 12, fill: '#e2e8f0' }} />
+                                        <YAxis
+                                            yAxisId="left"
+                                            stroke="#34D399"
+                                            tickFormatter={(value) => formatBTC(value, 4)}
+                                            tick={{ fill: '#e2e8f0' }}
+                                            domain={['auto', 'auto']}
+                                            label={{
+                                                value: 'BTC保有量',
+                                                angle: -90,
+                                                position: 'insideLeft',
+                                                offset: -40,
+                                                style: { fill: '#34D399', fontSize: 12, fontWeight: 500 },
+                                            }}
+                                            width={80}
+                                        />
+                                        <YAxis
+                                            yAxisId="right"
+                                            orientation="right"
+                                            stroke="#60A5FA"
+                                            tickFormatter={(value) => formatYen(value, 2)}
+                                            tick={{ fill: '#e2e8f0' }}
+                                            domain={['auto', 'auto']}
+                                            label={{
+                                                value: '資産評価額',
+                                                angle: 90,
+                                                position: 'insideRight',
+                                                offset: -10,
+                                                style: { fill: '#60A5FA', fontSize: 12, fontWeight: 500 },
+                                            }}
+                                            width={100}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{ backgroundColor: 'rgba(26, 32, 44, 0.95)', border: '1px solid rgba(82, 82, 91, 0.8)', borderRadius: '8px' }}
+                                            labelStyle={{ color: '#e2e8f0' }}
+                                            formatter={(value: number, name: string) =>
+                                                name === "btcHeld" ? [formatBTC(value, 4), "BTC保有量"] : [formatYen(value, 2), "資産評価額"]
+                                            }
+                                        />
+                                        <Legend wrapperStyle={{ color: '#e2e8f0', paddingTop: '10px' }} verticalAlign="top" height={36} />
+                                        <Line
+                                            yAxisId="left"
+                                            type="monotone"
+                                            dataKey="btcHeld"
+                                            name="BTC保有量"
+                                            stroke="#34D399"
+                                            dot={false}
+                                            strokeWidth={2}
+                                        />
+                                        <Line
+                                            yAxisId="right"
+                                            type="monotone"
+                                            dataKey="totalValue"
+                                            name="資産評価額"
+                                            stroke="#60A5FA"
+                                            dot={false}
+                                            strokeWidth={2}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+
+                            <div className={`block md:hidden ${colors.cardBg} p-4 rounded-xl ${colors.cardBorder} ${colors.shadowGlow}`}>
+                                <h3 className={`${typography.h3} ${colors.textPrimary} mb-2`}>ハイライト</h3>
+                                <div className="space-y-3">
+                                    <div className="bg-gray-800/50 p-3 rounded-md">
+                                        <div className={`${typography.small} ${colors.textMuted}`}>初期投資額</div>
+                                        <div className={`${typography.body} ${colors.textPrimary}`}>
+                                            {initialInvestmentType === "jpy"
+                                                ? formatYen(parseFloat(initialInvestment) || 0, 2)
+                                                : formatBTC(parseFloat(initialBtcHolding) || 0, 4)}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="bg-gray-800/50 p-3 rounded-md">
-                                    <div className={`${typography.small} ${colors.textMuted}`}>月額積立金</div>
-                                    <div className={`${typography.body} ${colors.textPrimary}`}>
-                                        {formatYen(parseFloat(monthlyInvestment) || 0, 2)}
+                                    <div className="bg-gray-800/50 p-3 rounded-md">
+                                        <div className={`${typography.small} ${colors.textMuted}`}>月額積立金</div>
+                                        <div className={`${typography.body} ${colors.textPrimary}`}>
+                                            {formatYen(parseFloat(monthlyInvestment) || 0, 2)}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="bg-gray-800/50 p-3 rounded-md">
-                                    <div className={`${typography.small} ${colors.textMuted}`}>5年後の資産</div>
-                                    <div className={`${typography.body} ${colors.textPrimary}`}>
-                                        {formatYen(results.find(r => r.year === CURRENT_YEAR + 5)?.totalValue || 0, 2)}
+                                    <div className="bg-gray-800/50 p-3 rounded-md">
+                                        <div className={`${typography.small} ${colors.textMuted}`}>5年後の資産</div>
+                                        <div className={`${typography.body} ${colors.textPrimary}`}>
+                                            {formatYen(results.find(r => r.year === CURRENT_YEAR + 5)?.totalValue || 0, 2)}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="bg-gray-800/50 p-3 rounded-md">
-                                    <div className={`${typography.small} ${colors.textMuted}`}>10年後の資産</div>
-                                    <div className={`${typography.body} ${colors.textPrimary}`}>
-                                        {formatYen(results.find(r => r.year === CURRENT_YEAR + 10)?.totalValue || 0, 2)}
+                                    <div className="bg-gray-800/50 p-3 rounded-md">
+                                        <div className={`${typography.small} ${colors.textMuted}`}>10年後の資産</div>
+                                        <div className={`${typography.body} ${colors.textPrimary}`}>
+                                            {formatYen(results.find(r => r.year === CURRENT_YEAR + 10)?.totalValue || 0, 2)}
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="bg-gray-800/50 p-3 rounded-md">
-                                    <div className={`${typography.small} ${colors.textMuted}`}>シミュレーション終了時の資産</div>
-                                    <div className={`${typography.body} ${colors.textPrimary}`}>
-                                        {formatYen(results[results.length - 1]?.totalValue || 0, 2)}
+                                    <div className="bg-gray-800/50 p-3 rounded-md">
+                                        <div className={`${typography.small} ${colors.textMuted}`}>シミュレーション終了時の資産</div>
+                                        <div className={`${typography.body} ${colors.textPrimary}`}>
+                                            {formatYen(results[results.length - 1]?.totalValue || 0, 2)}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className={`hidden md:block ${colors.cardBg} p-6 rounded-xl ${colors.cardBorder} ${colors.shadowGlow}`}>
-                            <h3 className={`${typography.h3} ${colors.textPrimary} mb-4`}>シミュレーション結果</h3>
-                            <div className="overflow-x-auto -mx-6 px-6">
-                                <table className="min-w-full divide-y divide-gray-700/50">
-                                    <thead className="bg-gray-800/50">
-                                        <tr>
-                                            <th className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>年</th>
-                                            <th className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>BTC価格</th>
-                                            <th className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>年間積み立て額</th>
-                                            <th className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>追加BTC量</th>
-                                            <th className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>BTC保有量</th>
-                                            <th className={`${typography.small} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>資産評価額</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-700/50">
-                                        {results.map((result, index) => (
-                                            <tr key={index} className={index % 2 === 0 ? "bg-gray-800/30" : "bg-gray-750/30 hover:bg-gray-700/50 transition-colors duration-200"}>
-                                                <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>{result.year}</td>
-                                                <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>{formatYen(result.btcPrice, 2)}</td>
-                                                <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>{formatYen(result.annualInvestment, 2)}</td>
-                                                <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>{formatBTC(result.btcPurchased, 4)}</td>
-                                                <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>{formatBTC(result.btcHeld, 4)}</td>
-                                                <td className={`${typography.body} px-4 py-2 whitespace-nowrap ${colors.textPrimary}`}>{formatYen(result.totalValue, 2)}</td>
+                            <div className={`hidden md:block ${colors.cardBg} p-6 rounded-xl ${colors.cardBorder} ${colors.shadowGlow}`}>
+                                <h3 className={`${typography.h3} ${colors.textPrimary} mb-4`}>シミュレーション結果</h3>
+                                <div className="overflow-x-auto -mx-6 px-6">
+                                    <table className="min-w-full divide-y divide-gray-700/50">
+                                        <thead className={colors.tableHeaderBg}>
+                                            <tr>
+                                                <th className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>年</th>
+                                                <th className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>BTC価格</th>
+                                                <th className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>年間積み立て額</th>
+                                                <th className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>追加BTC量</th>
+                                                <th className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>BTC保有量</th>
+                                                <th className={`${typography.tableHeader} px-4 py-3 text-left ${colors.textPrimary} uppercase tracking-wider`}>資産評価額</th>
                                             </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-700/50">
+                                            {results.map((result, index) => (
+                                                <tr key={index} className={index % 2 === 0 ? "bg-gray-800/30 hover:bg-gray-700/50" : "bg-gray-750/30 hover:bg-gray-700/50 transition-colors duration-200"}>
+                                                    <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>{result.year}</td>
+                                                    <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>{formatYen(result.btcPrice, 2)}</td>
+                                                    <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>{formatYen(result.annualInvestment, 2)}</td>
+                                                    <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>{formatBTC(result.btcPurchased, 4)}</td>
+                                                    <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>{formatBTC(result.btcHeld, 4)}</td>
+                                                    <td className={`${typography.tableBody} px-4 py-3 whitespace-nowrap ${colors.textPrimary}`}>{formatYen(result.totalValue, 2)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
-            </div>
-        </div>
+                    )
+                }
+            </div >
+        </div >
     );
 };
 
