@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Newspaper, ArrowRight } from 'lucide-react';
 import { useBitcoinData } from '../hooks/useBitcoinData';
 import { formatCurrency, formatPercentage } from '../utils/formatters';
-import { calculatePowerLawPosition, getPowerLawPositionLabel, getPowerLawPositionColor } from '../utils/models';
+import { getPowerLawPositionLabel, getPowerLawPositionColor } from '../utils/models';
 import DataContainer from '../components/ui/DataContainer';
 import { BitcoinData, PowerLawDataPoint } from '../types';
 
@@ -66,19 +66,32 @@ const AnalysisNews: React.FC = () => {
         return { percentage, trend };
     }, [dailyPrices]);
 
-    const powerLawPosition = React.useMemo(() => {
-        if (!currentPrice || !powerLawData || powerLawData.length === 0) return null;
-        const latestNonFutureData = [...powerLawData]
-            .filter((item: PowerLawDataPoint) => !item.isFuture && item.price !== null)
-            .sort((a: PowerLawDataPoint, b: PowerLawDataPoint) => b.date - a.date)[0];
-        if (!latestNonFutureData || !currentPrice.prices.usd) return null;
-
-        return calculatePowerLawPosition(
-            currentPrice.prices.usd,
-            latestNonFutureData.medianModel,
-            latestNonFutureData.supportModel
+    // 中央価格と下限価格を取得
+    const { medianPrice, supportPrice } = React.useMemo(() => {
+        if (!powerLawData || powerLawData.length === 0) return { medianPrice: 0, supportPrice: 0 };
+        const now = Date.now();
+        const closestPoint = powerLawData.reduce(
+            (closest: PowerLawDataPoint, current: PowerLawDataPoint) => {
+                const currentDiff = Math.abs(current.date - now);
+                const closestDiff = Math.abs(closest.date - now);
+                return currentDiff < closestDiff ? current : closest;
+            },
+            powerLawData[0]
         );
-    }, [currentPrice, powerLawData]);
+        return { medianPrice: closestPoint.medianModel, supportPrice: closestPoint.supportModel };
+    }, [powerLawData]);
+
+    // 中央価格からの乖離率を計算
+    const medianDeviation = React.useMemo(() => {
+        if (!currentPrice || !medianPrice) return null;
+        return ((currentPrice.prices.usd - medianPrice) / medianPrice) * 100;
+    }, [currentPrice, medianPrice]);
+
+    // 下限価格からの乖離率を計算
+    const supportDeviation = React.useMemo(() => {
+        if (!currentPrice || !supportPrice) return null;
+        return ((currentPrice.prices.usd - supportPrice) / supportPrice) * 100;
+    }, [currentPrice, supportPrice]);
 
     return (
         <div className="flex flex-col min-h-screen bg-gradient-to-b from-[#1a202c] to-[#2d3748] text-gray-100">
@@ -103,18 +116,27 @@ const AnalysisNews: React.FC = () => {
                         loadingMessage="データ取得中..."
                         noDataMessage="データが利用できません"
                     >
-                        {currentPrice && powerLawPosition !== null ? (
+                        {currentPrice && medianDeviation !== null ? (
                             <div className="space-y-3">
                                 <p className={`${typography.body} ${colors.textPrimary}`}>
                                     現在のビットコイン価格：{formatCurrency(currentPrice.prices.jpy, 'JPY')}
                                 </p>
                                 <p className={`${typography.body} ${colors.textSecondary}`}>
+                                    中央価格からの乖離率：
+                                    <span className={`${typography.body} ${colors.textPrimary}`}>
+                                        {medianDeviation >= 0 ? '+' : ''}{medianDeviation.toFixed(1)}%
+                                    </span>
+                                </p>
+                                <p className={`${typography.body} ${colors.textSecondary}`}>
                                     パワーローモデルとの位置：
                                     <span
                                         className="px-2 py-1 rounded-full text-xs font-medium ml-2"
-                                        style={{ backgroundColor: getPowerLawPositionColor(powerLawPosition), color: '#fff' }}
+                                        style={{
+                                            backgroundColor: `${getPowerLawPositionColor(medianDeviation, supportDeviation)}20`,
+                                            color: getPowerLawPositionColor(medianDeviation, supportDeviation),
+                                        }}
                                     >
-                                        {getPowerLawPositionLabel(powerLawPosition)}
+                                        {getPowerLawPositionLabel(medianDeviation, supportDeviation)}
                                     </span>
                                 </p>
                                 <p className={`${typography.body} ${colors.textSecondary}`}>

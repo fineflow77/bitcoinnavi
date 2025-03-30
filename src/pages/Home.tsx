@@ -5,43 +5,38 @@ import { TrendingUp, Info, ArrowUpRight } from 'lucide-react';
 import { useBitcoinData } from '../hooks/useBitcoinData';
 import PowerLawChartWrapper from '../components/charts/PowerLawChartWrapper';
 import { formatCurrency } from '../utils/formatters';
-import { calculatePowerLawPosition, getPowerLawPositionLabel } from '../utils/models';
+import { getPowerLawPositionLabel, getPowerLawPositionColor } from '../utils/models';
 import { calculateRSquared } from '../utils/mathUtils';
 import DataContainer from '../components/ui/DataContainer';
 import { ChartLineUp, Wallet as PhosphorWallet } from 'phosphor-react';
 import { BitcoinData, PowerLawDataPoint, WeeklyPrice, DailyPrice } from '../types';
 
+// タイポグラフィの定義
 const typography: Record<string, string> = {
-  h1: 'text-3xl sm:text-4xl font-bold tracking-tight',
-  h2: 'text-2xl sm:text-3xl font-semibold',
-  subtitle: 'text-lg sm:text-xl font-medium',
-  body: 'text-base sm:text-lg font-normal',
-  small: 'text-sm sm:text-base font-normal',
-  tiny: 'text-xs sm:text-sm font-light',
+  h1: 'text-2xl sm:text-3xl font-semibold tracking-tight',
+  h2: 'text-xl sm:text-2xl font-medium',
+  subtitle: 'text-base sm:text-lg font-medium',
+  body: 'text-sm sm:text-base font-normal',
+  tiny: 'text-xs sm:text-sm font-normal',
+  small: 'text-xs sm:text-sm font-normal',
 };
 
+// 色の定義
 const colors: Record<string, string> = {
   primary: 'bg-[#3B82F6] hover:bg-[#2b6cb0] text-white',
-  secondary: 'bg-[#D4AF37] hover:bg-[#b8972f] text-black',
-  accent: 'bg-[#FF69B4] hover:bg-[#e05a9f] text-white', // Pink accent for lower bound related buttons if needed
-  cardBg: 'bg-gray-800/50 backdrop-blur-sm',
-  cardBorder: 'border border-gray-700/50',
-  cardBorderHighlight: 'border border-[#D4AF37]/30',
+  cardBg: 'bg-gray-800',
+  cardBorder: 'border border-gray-700',
   textPrimary: 'text-gray-100',
   textSecondary: 'text-gray-300',
   textMuted: 'text-gray-400',
-  chartBg: 'bg-transparent',
-  investmentCardBg: 'bg-gradient-to-br from-[#3B82F6] to-[#2b6cb0]',
-  withdrawalCardBg: 'bg-gradient-to-br from-[#D4AF37] to-[#b8972f]',
-  buttonBg: 'bg-gray-700',
-  buttonHover: 'hover:bg-gray-600',
-  tabActive: 'border-b-2 border-[#D4AF37] text-[#D4AF37]',
-  tabInactive: 'text-gray-400 hover:text-gray-200',
   amber: 'text-[#D4AF37]',
-  green: 'text-[#10B981]', // Adjusted green from green-400 to #10B981 to match central price color
-  red: 'text-red-400',
-  neutral: 'text-[#A3A3A3]',
-  pink: 'text-[#FF69B4]', // Adding pink color for support price
+  green: 'text-[#10B981]',
+  pink: 'text-[#FF69B4]',
+  tabActive: 'bg-[#3B82F6] text-white',
+  tabInactive: 'bg-gray-700 text-gray-300',
+  investmentCardBg: 'bg-gradient-to-br from-[#3B82F6] to-[#2b6cb0]',
+  withdrawalCardBg: 'bg-gradient-to-br from-[#10B981] to-[#065f46]',
+  cardBorderHighlight: 'border border-gray-600 hover:border-[#3B82F6]',
 };
 
 const Home: React.FC = () => {
@@ -57,24 +52,6 @@ const Home: React.FC = () => {
       if (calculatedRSquared !== null) setRSquared(calculatedRSquared);
     }
   }, [weeklyPrices]);
-
-  const powerLawPosition = useMemo(() => {
-    if (!currentPrice || !powerLawData || !currentPrice.prices || !currentPrice.prices.usd) return null;
-
-    // Get the latest non-future data point
-    const now = Date.now();
-    const latestNonFutureData = powerLawData
-      .filter((item: PowerLawDataPoint) => item.date <= now)
-      .sort((a: PowerLawDataPoint, b: PowerLawDataPoint) => b.date - a.date)[0];
-
-    if (!latestNonFutureData) return null;
-
-    return calculatePowerLawPosition(
-      currentPrice.prices.usd,
-      latestNonFutureData.medianModel,
-      latestNonFutureData.supportModel
-    );
-  }, [currentPrice, powerLawData]);
 
   const priceChangePercentage = useMemo(() => {
     if (!currentPrice || !dailyPrices || dailyPrices.length < 2) return null;
@@ -138,19 +115,20 @@ const Home: React.FC = () => {
                     ({formatCurrency(currentPrice.prices.usd, 'USD')})
                   </div>
                   {priceChangePercentage !== null && (
-                    <div className={`${typography.tiny} font-medium ${priceChangePercentage >= 0 ? 'text-green-400' : colors.red // Use text-green-400 for positive change
-                      }`}
-                    >
+                    <div className={`${typography.tiny} font-medium ${colors.textPrimary}`}>
                       前日比: {priceChangePercentage >= 0 ? '+' : ''}{priceChangePercentage.toFixed(2)}%
                     </div>
                   )}
-                  {powerLawPosition !== null && (
+                  {medianDeviation !== null && (
                     <div className="mt-2">
                       <span
-                        className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${powerLawPosition > 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-                          } hover:bg-[#b8972f]/20 hover:text-[#b8972f] transition-all duration-300`}
+                        className={`inline-block px-3 py-1 rounded-full text-sm font-medium bg-opacity-20 hover:bg-[#b8972f]/20 hover:text-[#b8972f] transition-all duration-300`}
+                        style={{
+                          backgroundColor: `${getPowerLawPositionColor(medianDeviation, supportDeviation)}20`,
+                          color: getPowerLawPositionColor(medianDeviation, supportDeviation),
+                        }}
                       >
-                        {getPowerLawPositionLabel(powerLawPosition)}
+                        {getPowerLawPositionLabel(medianDeviation, supportDeviation)}
                       </span>
                     </div>
                   )}
@@ -177,11 +155,8 @@ const Home: React.FC = () => {
                     ({formatCurrency(medianPrice, 'USD')})
                   </div>
                   {medianDeviation !== null && (
-                    <div
-                      className={`${typography.tiny} font-medium ${medianDeviation >= 0 ? 'text-red-400' : 'text-green-400' // red for above median, green for below
-                        }`}
-                    >
-                      現在価格は中央価格より {medianDeviation.toFixed(1)}% 乖離
+                    <div className={`${typography.tiny} font-medium ${colors.textPrimary}`}>
+                      現在価格は中央価格より {medianDeviation >= 0 ? '+' : ''}{medianDeviation.toFixed(1)}% 乖離
                     </div>
                   )}
                 </div>
@@ -207,10 +182,7 @@ const Home: React.FC = () => {
                     ({formatCurrency(supportPrice, 'USD')})
                   </div>
                   {supportDeviation !== null && (
-                    <div
-                      className={`${typography.tiny} font-medium ${supportDeviation >= 0 ? 'text-green-400' : 'text-red-400' // green for above support, red for below
-                        }`}
-                    >
+                    <div className={`${typography.tiny} font-medium ${colors.textPrimary}`}>
                       現在価格は、この価格より {supportDeviation >= 0 ? '+' : ''}{supportDeviation.toFixed(1)}% 乖離
                     </div>
                   )}
@@ -236,23 +208,21 @@ const Home: React.FC = () => {
 
         {/* メイン：タブ付きパワーローチャート */}
         <div className="mt-12">
-          <h1 className={`${typography.h1} text-center text-[#D4AF37] mb-6`}>
-            長期パワーローチャート
-          </h1>
+          <h1 className={`${typography.h1} text-center text-[#D4AF37] mb-6`}>長期パワーローチャート</h1>
           <div className="flex justify-center mb-6 space-x-4">
             <button
               onClick={() => setActiveTab('log')}
               className={`px-6 py-2 ${typography.subtitle} rounded-full transition-all duration-300 ${activeTab === 'log' ? colors.tabActive : colors.tabInactive
                 } hover:bg-gray-700/50`}
             >
-              対数スケール
+              対数-対数スケール
             </button>
             <button
               onClick={() => setActiveTab('loglog')}
               className={`px-6 py-2 ${typography.subtitle} rounded-full transition-all duration-300 ${activeTab === 'loglog' ? colors.tabActive : colors.tabInactive
                 } hover:bg-gray-700/50`}
             >
-              対数-対数スケール
+              対数スケール
             </button>
           </div>
           <div className={`rounded-2xl ${colors.cardBorder} overflow-hidden shadow-lg`}>
